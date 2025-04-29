@@ -6,7 +6,7 @@ import torch
 import torchaudio
 import soundfile as sf
 
-from .dia.model import Dia
+from .dia.model import Dia, ComputeDtype
 import folder_paths
 
 #avoid unnecessary errors being raised by comfyUI interface
@@ -42,6 +42,7 @@ class DiaText2Speech:
                 "use_cfg_filter": ("BOOLEAN", {"default": True}),
                 "use_torch_compile": ("BOOLEAN", {"default": False}),
                 "cfg_filter_top_k": ("INT", {"default": 35, "min": 0, "max": 100}),
+                "dtype": (["fp32", "bf16", "fp16"], ),
             },
             "optional": {
                 "input_audio": ("AUDIO",),
@@ -87,12 +88,19 @@ class DiaText2Speech:
         use_cfg_filter,
         use_torch_compile,
         cfg_filter_top_k,
+        dtype,
         input_audio=None,
         input_audio_transcript="",
         available_tags="",
     ):
         config_path  = Path(model_path).with_name("config.json")
-        model = Dia.from_local(config_path=config_path , checkpoint_path=model_path)
+        if dtype == "fp32":
+            dtype = ComputeDtype.FLOAT32
+        elif dtype == "bf16":
+            dtype = ComputeDtype.BFLOAT16
+        else:
+            dtype = ComputeDtype.FLOAT16
+        model = Dia.from_local(config_path=config_path, checkpoint_path=model_path, compute_dtype=dtype)
 
         if input_audio is not None:
             waveform = input_audio["waveform"]  # [1, 2, N]

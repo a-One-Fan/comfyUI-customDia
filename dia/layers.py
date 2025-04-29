@@ -432,12 +432,12 @@ class DecoderLayer(nn.Module):
         cross_attn_cache: KVCache | None = None,
         prefill: bool = False,
     ) -> torch.Tensor:
-        residual = x
+        residual = x.to(state.enc_out.dtype)
         x_norm = self.pre_sa_norm(x)
 
         sa_out = self.self_attention(
-            Xq=x_norm,  # (2, 1, D)
-            Xkv=x_norm,  # (2, 1, D)
+            Xq=x_norm.to(state.enc_out.dtype),  # (2, 1, D)
+            Xkv=x_norm.to(state.enc_out.dtype),  # (2, 1, D)
             q_positions=state.dec_positions,  # (2, 1)
             kv_positions=state.dec_positions,  # (2, 1)
             attn_mask=None,
@@ -451,7 +451,7 @@ class DecoderLayer(nn.Module):
         residual = x
         x_norm = self.pre_ca_norm(x)
         ca_out = self.cross_attention(
-            Xq=x_norm,
+            Xq=x_norm.to(state.enc_out.dtype),
             Xkv=state.enc_out,
             q_positions=state.dec_positions,
             kv_positions=state.enc_positions,
@@ -507,6 +507,7 @@ class Decoder(nn.Module):
         self,
         enc_out: torch.Tensor,  # (B, S, E)
         enc_positions: torch.Tensor,  # (B, S)
+        dtype: torch.dtype=torch.float32
     ) -> list[KVCache]:
         """
         Computes the Key and Value tensors for cross-attention for each layer from the encoder output.
@@ -522,7 +523,7 @@ class Decoder(nn.Module):
             k = k_proj.transpose(1, 2)
             v = v_proj.transpose(1, 2)
 
-            per_layer_kv_cache.append(KVCache.from_kv(k, v))
+            per_layer_kv_cache.append(KVCache.from_kv(k, v, dtype=dtype))
 
         return per_layer_kv_cache
 

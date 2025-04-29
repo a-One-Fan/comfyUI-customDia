@@ -83,15 +83,15 @@ class KVCache:
         self.current_idx = torch.tensor(0)
 
     @classmethod
-    def from_kv(cls, k: torch.Tensor, v: torch.Tensor) -> "KVCache":
+    def from_kv(cls, k: torch.Tensor, v: torch.Tensor, dtype=torch.float32) -> "KVCache":
         return cls(
             num_heads=k.shape[1],
             max_len=k.shape[2],
             head_dim=k.shape[3],
             dtype=k.dtype,
             device=k.device,
-            k=k,
-            v=v,
+            k=k.to(dtype),
+            v=v.to(dtype),
         )
 
     def update(self, k: torch.Tensor, v: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:

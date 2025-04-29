@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torchaudio
 from huggingface_hub import hf_hub_download
+from comfy.model_management import get_torch_device
 
 from .audio import apply_audio_delay, build_delay_indices, build_revert_indices, decode, revert_audio_delay
 from .config import DiaConfig
@@ -14,14 +15,6 @@ from .state import DecoderInferenceState, DecoderOutput, EncoderInferenceState
 
 
 DEFAULT_SAMPLE_RATE = 44100
-
-
-def _get_default_device():
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-        return torch.device("mps")
-    return torch.device("cpu")
 
 
 def _sample_next_token(
@@ -94,7 +87,7 @@ class Dia:
         """
         super().__init__()
         self.config = config
-        self.device = device if device is not None else _get_default_device()
+        self.device = device if device is not None else get_torch_device()
         if isinstance(compute_dtype, str):
             compute_dtype = ComputeDtype(compute_dtype)
         self.compute_dtype = compute_dtype.to_dtype()

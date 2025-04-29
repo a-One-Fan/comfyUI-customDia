@@ -380,17 +380,17 @@ class DecoderLayer(nn.Module):
         self.pre_sa_norm = RMSNorm(
             dec_embed_dim,
             eps=model_config.normalization_layer_epsilon,
-            dtype=torch.float32,
+            dtype=compute_dtype,
         )
         self.pre_ca_norm = RMSNorm(
             dec_embed_dim,
             eps=model_config.normalization_layer_epsilon,
-            dtype=torch.float32,
+            dtype=compute_dtype,
         )
         self.pre_mlp_norm = RMSNorm(
             dec_embed_dim,
             eps=model_config.normalization_layer_epsilon,
-            dtype=torch.float32,
+            dtype=compute_dtype,
         )
 
         # Self-Attention (GQA) with Causal Masking
@@ -493,7 +493,7 @@ class Decoder(nn.Module):
         self.norm = RMSNorm(
             dec_config.n_embd,
             eps=model_config.normalization_layer_epsilon,
-            dtype=torch.float32,
+            dtype=compute_dtype,
         )
 
         self.logits_dense = DenseGeneral(
